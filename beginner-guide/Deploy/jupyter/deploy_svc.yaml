@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {service-name}
+  labels: 
+    app: {app-name}
+    maintainer: {maintainer-name}
+    ...
+spec:
+  type: (LoadBalancer|NodePort)
+  externalIPs: 
+    - {expose-ip-address}  
+  selector:
+    maintainer: {maintainer-name}
+    ...
+  ports:
+  - name: nb
+    port: {exposed-port}
+    targetPort: nb  # Specified port number
+    nodePort: {30000-33000} # Should be assigned if type:NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {deploy-name}
+  labels: 
+    app: {app-name}
+    maintainer: {maintainer-name}
+    ...
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {app-name} # Select pods with the same labels
+      maintainer: {maintainer-name}
+      ...
+  template:
+    metadata:
+      labels:
+        app: {app-name}
+        maintainer: {maintainer-name}
+        ...
+    spec:
+      nodeSelector: # specifying a node in k8s cluster to build this
+        kubernetes.io/hostname: {server-ip-address}
+      containers:
+      - name: {container-name}
+        image: {docker-image-of-jupyter-notebook}
+        imagePullPolicy: (Always|IfNotPresent)
+        workingDir: {directory} # default working directory
+        env: # default env in the container
+        - name: {key}
+          value: {value}
+        ports:
+        - name: nb
+          containerPort: 8888
+        volumeMounts: 
+        - name: {volume-name}
+          mountPath: /tf # directory in the container
+        resources: # Specify the limit & request of container resources
+          requests: # minimum to occupy
+            cpu: {cpu capacity}
+            memory: {memory}
+          limits:
+            cpu: {cpu capacity}
+            memory: {memory}
+      volumes:
+      - name: {volume-name}
+        hostPath:
+          path: {local-hostpath}
+      - name: {volume-name}
+        persistentVolumeClaim: 
+          claimName: {pvc-name}

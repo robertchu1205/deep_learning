@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: p3-saiap-gateway
+  labels:
+    project: p3-saiap
+    app: gateway
+spec:
+  type: LoadBalancer
+  externalIPs: 
+  - 10.41.55.96
+  selector:
+    project: p3-saiap
+    app: gateway
+  ports:
+  - name: gw
+    port: 3333
+    targetPort: gw
+    # nodePort: 30333
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p3-saiap-gateway
+  labels:
+    project: p3-saiap
+    app: gateway
+spec:
+  strategy:
+    # since we cannot assign gpu for tfserving, 
+    # so choosing RollingUpdate to avoid crash k8s
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      project: p3-saiap
+      app: gateway
+  template:
+    metadata:
+      labels:
+        project: p3-saiap
+        app: gateway
+      annotations:
+        configmap-sha1sum: afd82441cbc0a6db1a1a45e98fd02203331e6f74
+    spec:
+      containers:
+      - name: p3-saiap-gateway
+        image: harbor.wzs.wistron.com.cn/datteam/tfserving-gateway/p3-saiap-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - name: gw
+          containerPort: 3333
+        volumeMounts:
+        - name: p3-saiap-gateway-config
+          readOnly: true
+          mountPath: /config/config.json
+          subPath: config.json
+        - name: data
+          readOnly: true
+          mountPath: /data
+      volumes:
+      - name: p3-saiap-gateway-config
+        configMap:
+          name: p3-saiap-gateway-config
+      - name: data
+        hostPath:
+          path: /c/ToBeChecked

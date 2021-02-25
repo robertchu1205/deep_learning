@@ -1,0 +1,26 @@
+variables:
+  REGISTRY_HOST: "harbor.wzs.wistron.com.cn"
+  IMAGE_NAME: "datteam/aoi-p1-dip-fa-nvidia/label-with-preprocess"
+  GIT_SSL_NO_VERIFY: "true"
+
+stages:
+- build
+
+build-image:
+  stage: build
+  tags:
+  - robert-gitlab-runner
+  retry: 2
+  image:
+    name: harbor.wzs.wistron.com.cn/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+  - echo $HARBOR_AUTH > /kaniko/.docker/config.json
+  - echo "starting kaniko"
+  - |
+    /kaniko/executor \
+    --dockerfile=${CI_PROJECT_DIR}/Dockerfile \
+    --context=${CI_PROJECT_DIR} \
+    --destination=${REGISTRY_HOST}/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA} \
+    --insecure \
+    --insecure-pull

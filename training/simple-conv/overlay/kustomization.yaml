@@ -1,0 +1,9 @@
+resources:
+- ../base
+commonLabels:
+  com: alu-m2
+  stage: dev
+namePrefix: simple-conv-alu-m2-
+images:
+  - name: simple-conv-model
+    newTag: v2.0

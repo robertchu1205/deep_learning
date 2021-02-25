@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata: 
+  name: tf-pv
+  labels:
+    app: pv
+    project: p3-saiap
+spec: 
+  storageClassName: tf-scn
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/d/MoveFromDesktop/TwoModel/deploy"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tf-pvc
+  labels:
+    app: pvc
+    project: p3-saiap
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: tf-scn
+  selector:
+    matchLabels:
+      project: p3-saiap

@@ -1,0 +1,17 @@
+{
+    "maxbool": true,
+    "split": true,
+    "TRAIN_ROOT": "/data",
+    "VAL_ROOT": "",
+    "TEST_ROOT": "",
+    "MODEL_DIR": "model",
+    "BATCH_SIZE": 1024,
+    "EPOCH": 300,
+    "CHANNELS": 3,
+    "IMG_WIDTH": 96,
+    "IMG_HEIGHT": 96,
+    "VAL_PERCENT": 0.1,
+    "TEST_PERCENT": 0.1,
+    "layers" : 3,
+    "filters" : 8
+}

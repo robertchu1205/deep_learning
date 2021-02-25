@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: p3-saiap-tfserving-config
+  labels:
+    project: p3-saiap
+    app: tfserving-config
+data:
+  model_config.txt: |
+    model_config_list: {
+      config: {
+        name: "p1-str", 
+        base_path: "/models/p1-str",
+        model_platform: "tensorflow"
+      },
+      config: {
+        name: "p2-str",
+        base_path: "/models/p2-str",
+        model_platform: "tensorflow"
+      },
+      config: {
+        name: "elec-M1",
+        base_path: "/models/elec-M1",
+        model_platform: "tensorflow"
+      },
+      config: {
+        name: "elec-M2",
+        base_path: "/models/elec-M2",
+        model_platform: "tensorflow"
+      }
+    }
+  monitoring_config.txt: |
+    prometheus_config {
+      enable: true
+      path: "/monitoring/prometheus/metrics"
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: p3-saiap-gateway-config
+  labels:
+    project: p3-saiap
+    app: gateway-config
+data:
+  config.json: |
+    {
+      "env_setting" : {
+          "con_threshold": 2.0,
+          "logging_loki_url": "http://10.41.55.96:31000/api/prom/push",
+          "tfs_method": "grpc",
+          "image_format": "b64",
+          "grpc_batch" : 300,
+          "image_input_height" : 96, 
+          "image_input_weight" : 96,  
+          "signature_name": "classification",
+          "tfserving_grpc": "10.41.55.96:32210",
+          "tfserving_rest": "10.41.55.96:32211",
+          "model_input_name": "string_array", 
+          "model_output_name": "output_node" },
+      "model_setting" : {
+          "A":{
+              "model_name" : ["p1-str","p2-str"],  
+              "data_type" : [
+                  { 
+                      "0" : "NG-NoneComponent",
+                      "1" : "NG-OutsidePosition",
+                      "2" : "NG-UpsideDown",
+                      "3" : "OK"
+                  },
+                  { 
+                      "0" : "0",
+                      "1" : "180",
+                      "2" : "270",
+                      "3" : "90"
+                  }
+              ]
+          },
+          "E":{
+              "model_name" : ["elec-M1","elec-M2"],
+              "data_type" : [
+                  { 
+                      "0" : "NG-NoneComponent",
+                      "1" : "NG-OutsidePosition",
+                      "2" : "NG-UpsideDown",
+                      "3" : "OK"
+                  },
+                  { 
+                      "0" : "0",
+                      "1" : "180",
+                      "2" : "270",
+                      "3" : "90"
+                  }
+              ]
+          }
+      }
+    }

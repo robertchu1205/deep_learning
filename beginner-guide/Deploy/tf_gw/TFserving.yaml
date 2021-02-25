@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: p3-saiap-tfserving
+  labels: 
+    project: p3-saiap
+    app: tfserving
+spec:
+  type: NodePort
+  externalIPs: 
+  - 10.41.55.96
+  selector:
+    project: p3-saiap
+    app: tfserving
+  ports:
+  - name: grpc
+    port: 32210
+    targetPort: grpc
+    nodePort: 32210
+  - name: rest
+    port: 32211
+    targetPort: rest
+    nodePort: 32211
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p3-saiap-tfserving
+  labels: 
+    project: p3-saiap
+    app: tfserving
+spec:
+  strategy:
+    # since we cannot assign gpu for tfserving, 
+    # so choosing RollingUpdate to avoid crash k8s
+    type: RollingUpdate
+  replicas: 2
+  selector:
+    matchLabels:
+      project: p3-saiap
+      app: tfserving
+  template:
+    metadata:
+      labels:
+        project: p3-saiap
+        app: tfserving
+      annotations:
+        configmap-sha1sum: f06f355e4d7760f53653ad0763829e444896bc2c
+    spec:
+      containers:
+      - name: p3-saiap-tfserving
+        image: harbor.wzs.wistron.com.cn/tensorflow/serving:1.14.0-gpu
+        args:
+        - --model_config_file=/config/model_config.txt
+        - --monitoring_config_file=/config/monitoring_config.txt
+        ports:
+        - name: grpc
+          containerPort: 8500
+        - name: rest
+          containerPort: 8501
+        volumeMounts:
+        - name: p3-saiap-tfserving-config
+          mountPath: /config
+        - name: models-pvc
+          mountPath: /models
+        livenessProbe:
+          httpGet:
+            path: /monitoring/prometheus/metrics
+            port: rest
+        readinessProbe:
+          httpGet:
+            path: /monitoring/prometheus/metrics
+            port: rest
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: 12
+            memory: 32Gi
+            # nvidia.com/gpu: 1
+      volumes:
+      - name: p3-saiap-tfserving-config
+        configMap:
+          name: p3-saiap-tfserving-config
+      - name: models-pvc
+        # persistentVolumeClaim:
+          # claimName: tf-pvc
+      # - name: models
+        hostPath:
+          path: /D/MoveFromDesktop/TwoModel/deploy

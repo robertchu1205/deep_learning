@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: label-tensorflow-tuning-by-robert
+  labels: 
+    app: training
+    structure: tensorflow
+spec:
+  # ttlSecondsAfterFinished: 0
+  backoffLimit: 100000
+  parallelism: 1
+  completions: 1
+  # activeDeadlineSeconds: 100
+  template:
+    metadata:
+      labels: 
+        app: training
+    spec:
+      containers:
+      - name: training
+        image: harbor.wzs.wistron.com.cn/tensorflow/tensorflow:2.3.1-gpu
+        # imagePullPolicy: Always
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        - name: TF_FORCE_GPU_ALLOW_GROWTH
+          value: "true"
+        - name: label_num
+          value: "5"
+        - name: EPOCH
+          value: "5000"
+        - name: DIR_BASENAME
+          value: "tune_0125"
+        - name: BASE_MODEL
+          value: "MobileNetV2"
+        - name: IMAGE_WIDTH
+          value: "640"
+        - name: COMP
+          value: "pre_LABEL"
+        - name: LEARNING_RATE
+          value: "5e-5"
+        - name: conv_count
+          value: "3"
+        - name: first_filter
+          value: "32"
+        - name: kernel_size
+          value: "5"
+        - name: strides
+          value: "1"
+        - name: maxpool
+          value: "True"
+        resources:
+          requests:
+            cpu: 4
+            memory: 150Gi
+          limits: 
+            cpu: 8
+            memory: 150Gi
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: data-volume
+          subPath: robert/pretrained_notop_model
+          mountPath: /root/.keras/models
+        - name: data-volume
+          mountPath: /data
+        command: ["/bin/sh"]
+        args: ["-c", "python /data/robert/training/adversarial/label_heatsink_screw_tuning.py"]
+        # args: ["-c", "pip install -i https://pypi.tuna.tsinghua.edu.cn/simple neural_structured_learning && python /data/robert/training/adversarial/label_heatsink_screw.py"]
+        # args: ["-c", "python /data/robert/training/adversarial/label_heatsink_screw.py"]
+      restartPolicy: OnFailure 
+      volumes: 
+        - name: data-volume
+          persistentVolumeClaim: 
+            claimName: dataset-local
+
+# k logs -f style-transfer-dcgan-experiment-mmgnt > /raid/data/robert/ResNet50V2.log &
+# nohup python -u training/training.py > /p3/trained_h5/Random_100.log 2>&1 &
+# python /tf/robertnb/training/cap_all.py > /p3/trained_h5/2class_cap_all.log

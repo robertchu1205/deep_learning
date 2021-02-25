@@ -1,0 +1,14 @@
+# apiVersion: kustomize.config.k8s.io/v1beta1
+# kind: Kustomization
+resources:
+- deploy_svc.yaml
+patchesStrategicMerge:
+- deploy_volumeMounts.yaml
+namePrefix: james-tf23-
+commonLabels:
+  app: jupyter
+  maintainer: james
+images:
+- name: nvidia-jupyter
+  newName: nvcr.io/nvidia/tensorflow
+  newTag: "20.06-tf2-py3"

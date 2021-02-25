@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: robert-tf21-nb
+  labels: 
+    app: jupyter
+    maintainer: robert
+spec:
+  type: NodePort
+  # externalIPs: 
+  #   - 10.41.241.230
+  selector:
+    maintainer: robert
+  ports:
+  - name: nb
+    port: 8888
+    targetPort: nb
+    nodePort: 30009
+  - name: tb
+    port: 6006
+    targetPort: tb
+    nodePort: 30010
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: robert-tf21-nb
+  labels: 
+    app: jupyter
+    maintainer: robert
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+      maintainer: robert
+  template:
+    metadata:
+      labels:
+        app: jupyter
+        maintainer: robert
+    spec:
+      containers:
+      - name: robert-tf21-nb
+        image: nvcr.io/nvidia/tensorflow:20.01-tf2-py3
+        # imagePullPolicy: Always   
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        - name: JUPYTER_ENABLE_LAB
+          value: "yes"
+        command:
+        - jupyter-lab
+        - --notebook-dir=/tf/robertnb
+        workingDir: /tf/robertnb
+        # prevent from "Error: container has runAsNonRoot and image will run as root"
+        # securityContext:
+        #   runAsUser: 999
+        #   privileged: True
+        ports:
+        - name: nb
+          containerPort: 8888
+        - name: tb
+          containerPort: 6006
+        volumeMounts:
+        - name: data-volume
+          subPath: robert
+          mountPath: /tf/robertnb
+        - name: data-volume
+          subPath: p3-prewave-aoi-saiap
+          mountPath: /data
+        - name: data-volume
+          subPath: robert/pretrained_notop_model
+          mountPath: /root/.keras/models
+        resources:
+          requests:
+            cpu: 10
+            memory: 100Gi
+          limits: # Maximum
+            cpu: 20
+            memory: 300Gi
+            nvidia.com/gpu: 2
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim: 
+            claimName: dataset-local
+      # - name: host-volume
+      #   hostPath:
+      #     path: /bigdata/robert
+      # - name: data-volume
+      #   hostPath:
+      #       path: /raid/data/p3-prewave-aoi-saiap

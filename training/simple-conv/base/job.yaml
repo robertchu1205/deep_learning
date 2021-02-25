@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # namespace: simple-conv
+  name: simple-conv-alu-m2-$nameSuffix
+  labels: 
+    app: simple-conv
+spec:
+  ttlSecondsAfterFinished: 0
+  # backoffLimit: 1
+  parallelism: 1
+  completions: 1
+  # activeDeadlineSeconds: 100
+  template:
+    metadata:
+      labels: 
+        app: simple-conv
+    spec:
+      # nodeSelector: 
+      #   kubernetes.io/hostname: 10.41.65.78
+      containers:
+      - name: assign-config
+        image: simple-conv-model:array-v1.0 #input-string-cpu-v1.0-eval
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: maxbool
+          value: "$maxbool"
+        - name: IMG_WIDTH
+          value: "$IMG_WIDTH"
+        - name: IMG_HEIGHT
+          value: "$IMG_HEIGHT"
+        - name: layers
+          value: "$layers"
+        - name: filters
+          value: "$filters"
+        resources:
+        volumeMounts:
+        - name: image-data
+          mountPath: /data
+        - name: saved-model
+          mountPath: /model
+        - name: simple-conv-config
+          mountPath: /config
+        command: ["python", "/usr/src/app/main.py"]
+        ports:
+          - name: tb
+            containerPort: 6006
+        resources:
+          requests:
+            cpu: 12
+            memory: 100Gi
+          limits:
+            cpu: 24
+            memory: 200Gi
+            nvidia.com/gpu: 2
+      restartPolicy: OnFailure 
+      volumes: 
+      # Back up data from container in local server
+      - name: image-data
+        hostPath:
+          path: /bigdata/robert/p3-prewave-aoi-saiap/Alu-M2-08231119/OK
+      - name: saved-model
+        hostPath:
+          path: /bigdata/robert/p3-prewave-aoi-saiap/Alu-M2-08231119/$WH #
+      - name: simple-conv-config
+        configMap:
+          name: simple-conv-configmap

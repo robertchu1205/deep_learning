@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tf2-to-servable
+  labels: 
+    app: servable
+spec:
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      labels: 
+        app: servable
+    spec:
+      containers:
+      - name: to-servable
+        image: harbor.wzs.wistron.com.cn/tensorflow/tensorflow:2.0.0-py3
+        command: ["/bin/sh"]
+        args: ["-c", "python /data/robert/training/module/servable/tf2_servable.py"]
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        - name: h5_path
+          value: "/data/aoi-wzs-p1-dip-fa-nvidia/label_heatsink_screw/trained_h5/SCREW/V-1211-ep_089-vl_2.0300e_08-va_1.0.h5"
+        - name: pb_dir
+          value: "/data/aoi-wzs-p1-dip-fa-nvidia/models/screw/"
+        - name: img_size
+          value: "224"
+        - name: version_name
+          value: "20201211"
+        - name: model_from
+          value: "V"
+        - name: label_num
+          value: "2"
+        resources:
+          limits:
+            cpu: 3
+            memory: 3Gi
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      restartPolicy: OnFailure 
+      volumes: 
+        - name: data-volume
+          persistentVolumeClaim: 
+            claimName: dataset-local

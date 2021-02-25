@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    project: aoi-p1-dip-fa-nvidia
+    app: label
+  name: aoi-p1-dip-fa-nvidia-label
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: label
+      project: aoi-p1-dip-fa-nvidia
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        project: aoi-p1-dip-fa-nvidia
+        app: label
+    spec:
+      containers:
+      - command:
+        - python
+        - serving.py
+        - "8501"
+        image: harbor.wzs.wistron.com.cn/datteam/aoi-p1-dip-fa-nvidia/label-with-preprocess:builder
+        imagePullPolicy: Always
+        workingDir: "/app"
+        name: models
+        ports:
+        - containerPort: 8501
+          name: label
+        resources:
+          limits:
+            cpu: "12"
+            memory: 32Gi
+            nvidia.com/gpu: "1"
+          requests:
+            cpu: 200m
+            memory: 200Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    project: aoi-p1-dip-fa-nvidia
+    app: label
+  name: aoi-p1-dip-fa-nvidia-label
+spec:
+  externalTrafficPolicy: Local
+  ports:
+  - name: label
+    nodePort: 30003
+    port: 8501
+    targetPort: label
+  selector:
+    project: aoi-p1-dip-fa-nvidia
+    app: label
+  type: NodePort

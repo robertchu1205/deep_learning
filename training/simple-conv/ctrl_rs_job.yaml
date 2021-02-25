@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: simple-conv-alu-m2
+  labels:
+    app: simple-conv
+    com: alu-m2
+spec:
+  backoffLimit: 1
+  # activeDeadlineSeconds: 100
+  template:
+    spec:
+      nodeSelector: 
+        kubernetes.io/hostname: 10.41.65.78
+      containers:
+      - name: wh-96
+        image: simple-conv-model:v1.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 4
+            memory: 15Gi
+          limits:
+            cpu: 4
+            memory: 30Gi
+            nvidia.com/gpu: 2
+        env:
+        - name: IMG_WIDTH
+          value: "96"
+        - name: IMG_HEIGHT
+          value: "96"
+        - name: model-dir
+          value: "model-96"
+        - name: EPOCH
+          value: "300"
+        volumeMounts:
+        - name: image-data
+          mountPath: /data
+        - name: saved-model
+          mountPath: /model
+          # subPathExpr: /$(model-dir)
+        command: ["python", "/usr/src/app/main.py", "-d", "model", "-r", "/data"]
+      restartPolicy: Never 
+      volumes: 
+      # Back up data from container in local server
+      - name: image-data
+        hostPath:
+          path: /home/robert/robertnb/Model-2-AllTime/OK
+      - name: saved-model
+        hostPath:
+          path: /home/robert/robertnb/Model-2-AllTime/wh-96

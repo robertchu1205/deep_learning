@@ -1,0 +1,23 @@
+// http post request json format
+{
+    "instances": [
+        // image 1
+        {
+            "image": {
+                "b64": "IMAGE_BYTE_STRING"
+            },
+            "component": "Capacitor",
+            "degree": "180"
+        },
+        // image 2
+        {
+            "image": {
+                "b64": "IMAGE_BYTE_STRING"
+            },
+            "component": "Connector",
+            "degree": "090"
+        },
+        // image 3
+        {}
+    ]
+}

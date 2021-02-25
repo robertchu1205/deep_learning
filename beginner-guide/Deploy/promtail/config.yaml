@@ -1,0 +1,48 @@
+server:
+  http_listen_port: 31001
+clients:
+- url: http://loki:3100/api/prom/push
+  external_labels: 
+    logsource: promtail
+positions:
+  filename: /var/log/positions.yaml
+scrape_configs:
+- job_name: log
+  static_configs:
+  - targets:
+    - localhost
+    labels:
+      __path__: /var/log/containers/p3-saiap-gateway*.log
+  pipeline_stages:
+  - docker:
+  - json:
+      expressions:
+        component:
+        sn:
+        degree:
+        voltage:
+        capacity:
+        req_time:
+        res_time:
+        filename:
+        msg:
+        pred_class:
+        confidence:
+        ng_model_name:
+        severity:
+        logger: 
+  - labels:
+      component:
+      sn:
+      degree:
+      voltage:
+      capacity:
+      req_time:
+      res_time:
+      filename:
+      msg:
+      pred_class:
+      confidence:
+      ng_model_name:
+      severity:
+      logger:

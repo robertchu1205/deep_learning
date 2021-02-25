@@ -1,0 +1,1 @@
+cooperating with co-workers developing pre-process and building it to micro-service with my own developed deep learning model

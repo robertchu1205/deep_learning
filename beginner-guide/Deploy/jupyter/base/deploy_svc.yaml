@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tensorflow-jupyter
+spec:
+  type: NodePort
+  ports:
+  - name: nb
+    port: 8888
+    targetPort: nb
+  - name: tb
+    port: 6006
+    targetPort: tb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorflow-jupyter
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: tensorflow-jupyter
+        image: nvidia-jupyter
+        imagePullPolicy: IfNotPresent   
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        - name: JUPYTER_ENABLE_LAB
+          value: "yes"
+        - name: TF_FORCE_GPU_ALLOW_GROWTH
+          value: "true"
+        command:
+        - /bin/sh
+        args:
+        - -c
+        - apt-get update && apt-get install -y libsm6 libxext6 libxrender-dev && pip config --user set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && pip config --user set global.trusted-host pypi.tuna.tsinghua.edu.cn && jupyter-lab && --notebook-dir=/tf/nb
+        workingDir: /tf/nb
+        ports:
+        - name: nb
+          containerPort: 8888
+        - name: tb
+          containerPort: 6006
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        resources:
+          requests:
+            cpu: 10
+            memory: 20Gi
+            nvidia.com/gpu: 1
+          limits: # Maximum
+            cpu: 20
+            memory: 40Gi
+            nvidia.com/gpu: 1
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim: 
+            claimName: dataset-local

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # namespace: simple-conv
+  name: simple-conv-configmap
+  labels:
+    app: simple-conv
+data:
+  config.json: |
+    {
+      "split": true,
+      "TRAIN_ROOT": "/data",
+      "VAL_ROOT": "",
+      "TEST_ROOT": "",
+      "MODEL_DIR": "model",
+      "BATCH_SIZE": 1024,
+      "EPOCH": 300,
+      "CHANNELS": 3,
+      "VAL_PERCENT": 0.1,
+      "TEST_PERCENT": 0.1
+    }

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorflow-jupyter
+spec:
+  template: 
+    spec:
+      containers: 
+      - name: tensorflow-jupyter
+        resources:
+          limits:
+            cpu: 30
+          requests:
+            memory: 40Gi
+        volumeMounts:
+        - name: data-volume
+          subPath: james
+          mountPath: /tf/nb

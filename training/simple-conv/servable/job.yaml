@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: h5-to-servable-by-tf1
+  labels: 
+    app: ToServable
+spec:
+  ttlSecondsAfterFinished: 0
+  # backoffLimit: 1
+  parallelism: 1
+  completions: 1
+  # activeDeadlineSeconds: 100
+  template:
+    metadata:
+      labels: 
+        app: ToServable
+    spec:
+      containers:
+      - name: toservable
+        image: tf-toservable:1.14.0 #input-string-cpu-v1.0-eval
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: IMG_WIDTH
+          value: "96"
+        - name: IMG_HEIGHT
+          value: "96"
+        - name: H5_PATH
+          value: "/h5_path/"
+        - name: PB_PATH
+          value: "/pb_path/"
+        resources:
+        volumeMounts:
+        - name: h5-path
+          mountPath: /h5_path
+        - name: pb-path
+          mountPath: /pb_path
+        command: ["python", "/usr/src/app/servable_model.py"]
+        resources:
+          requests:
+            cpu: 12
+            memory: 100Gi
+          limits:
+            cpu: 24
+            memory: 200Gi
+            nvidia.com/gpu: 2
+      restartPolicy: OnFailure 
+      volumes: 
+      # Back up data from container in local server
+      - name: h5-path
+        hostPath:
+          path: /bigdata/robert/p3-prewave-aoi-saiap/Alu-M2-08231119/wh-96-dcgan/conv3_filter2_mpTrue
+      - name: pb-path
+        hostPath:
+          path: /bigdata/robert/serving/filter2

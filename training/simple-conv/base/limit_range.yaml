@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  namespace: simple-conv
+  name: simple-conv-limit-range
+spec:
+  limits:
+  - default:
+      memory: 32Gi
+      cpu: 12
+      nvidia.com/gpu: 2
+    defaultRequest:
+      memory: 17Gi
+      cpu: 7
+    type: Container
